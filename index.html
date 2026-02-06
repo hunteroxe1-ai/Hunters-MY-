@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="ny">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PHILLIMON EKHA - Pro Scientific</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.8.0/math.js"></script>
+    <style>
+        :root {
+            --body-bg: #1e1e1e;
+            --screen-bg: #8ba892;
+            --btn-num: #3d3d3d;
+            --btn-sci: #252525;
+            --btn-top: #444;
+            --accent-green: #2e7d32;
+            --accent-red: #b71c1c;
+        }
+
+        body { margin: 0; background: #000; font-family: 'Arial', sans-serif; display: flex; justify-content: center; height: 100vh; overflow: hidden; user-select: none; }
+        
+        .calc { width: 100%; max-width: 420px; background: var(--body-bg); display: flex; flex-direction: column; padding: 12px; box-shadow: 0 0 30px rgba(0,0,0,1); border-radius: 0 0 30px 30px; border: 2px solid #333; }
+
+        .brand-section { text-align: center; color: #777; font-size: 0.65rem; margin-bottom: 5px; }
+        .brand-section b { color: #4CAF50; letter-spacing: 1.5px; }
+
+        .screen { background: var(--screen-bg); height: 100px; border: 6px solid #333; border-radius: 4px; padding: 8px; display: flex; flex-direction: column; justify-content: space-between; color: #1a1a1a; box-shadow: inset 0 0 10px rgba(0,0,0,0.5); }
+        #status { font-family: monospace; font-size: 0.7rem; font-weight: bold; height: 15px; }
+        #display { font-family: 'Courier New', monospace; font-size: 1.1rem; overflow-x: auto; white-space: nowrap; height: 25px; }
+        #result { font-family: 'Courier New', monospace; font-size: 2rem; text-align: right; font-weight: bold; height: 40px; }
+
+        .keypad { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 10px; flex-grow: 1; }
+
+        button { border: none; border-radius: 4px; color: white; font-weight: bold; font-size: 0.75rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.1s; box-shadow: 0 2px 0 #000; }
+        button:active { transform: translateY(2px); box-shadow: none; filter: brightness(1.4); }
+
+        /* Button Varieties */
+        .btn-top { background: var(--btn-top); height: 35px; }
+        .btn-sci { background: var(--btn-sci); height: 35px; }
+        .btn-num { background: var(--btn-num); font-size: 1.3rem; height: 50px; }
+        .btn-act { background: #8e2115; height: 50px; }
+        .btn-on { background: var(--accent-green); height: 35px; }
+        .btn-off { background: var(--accent-red); height: 35px; }
+        .btn-eq { background: #1565c0; grid-column: span 2; height: 50px; font-size: 1.5rem; }
+
+        /* Power State */
+        .is-off .screen { background: #222; color: #222; }
+        .is-off button:not(.btn-on) { opacity: 0.4; pointer-events: none; }
+    </style>
+</head>
+<body id="calcApp" class="is-off">
+
+<div class="calc">
+    <div class="brand-section"> <b>PHILLIMON EKHA</b> EDITION</div>
+    
+    <div class="screen">
+        <div id="status"></div>
+        <div id="display"></div>
+        <div id="result"></div>
+    </div>
+
+    <div class="keypad">
+        <button class="btn-top" onclick="doShift()">SHIFT</button>
+        <button class="btn-top">ALPHA</button>
+        <button class="btn-top" onclick="alert('MODE: 1:COMP 2:STAT 3:TABLE')">MODE</button>
+        <button class="btn-off" onclick="powerOff()">OFF</button>
+        <button class="btn-on" onclick="powerOn()">ON</button>
+
+        <button class="btn-sci" onclick="add('abs(')">abs</button>
+        <button class="btn-sci" onclick="add('^3')">x³</button>
+        <button class="btn-sci" onclick="add('^-1')">x⁻¹</button>
+        <button class="btn-sci" onclick="add('log10(')">log</button>
+        <button class="btn-sci" onclick="add('log(')">ln</button>
+
+        <button class="btn-sci" onclick="add('(')">(</button>
+        <button class="btn-sci" onclick="add(')')">)</button>
+        <button class="btn-sci" onclick="add('sin(')">sin</button>
+        <button class="btn-sci" onclick="add('cos(')">cos</button>
+        <button class="btn-sci" onclick="add('tan(')">tan</button>
+
+        <button class="btn-sci" onclick="add('sqrt(')">√</button>
+        <button class="btn-sci" onclick="add('^2')">x²</button>
+        <button class="btn-sci" onclick="add('^')">xʸ</button>
+        <button class="btn-sci" onclick="add('deg')">°' "</button>
+        <button class="btn-sci" onclick="add('hyp')">hyp</button>
+
+        <button class="btn-num" onclick="add('7')">7</button>
+        <button class="btn-num" onclick="add('8')">8</button>
+        <button class="btn-num" onclick="add('9')">9</button>
+        <button class="btn-act" onclick="del()">DEL</button>
+        <button class="btn-act" onclick="ac()">AC</button>
+
+        <button class="btn-num" onclick="add('4')">4</button>
+        <button class="btn-num" onclick="add('5')">5</button>
+        <button class="btn-num" onclick="add('6')">6</button>
+        <button class="btn-sci" style="font-size:1.2rem" onclick="add('*')">×</button>
+        <button class="btn-sci" style="font-size:1.2rem" onclick="add('/')">÷</button>
+
+        <button class="btn-num" onclick="add('1')">1</button>
+        <button class="btn-num" onclick="add('2')">2</button>
+        <button class="btn-num" onclick="add('3')">3</button>
+        <button class="btn-sci" style="font-size:1.2rem" onclick="add('+')">+</button>
+        <button class="btn-sci" style="font-size:1.2rem" onclick="add('-')">-</button>
+
+        <button class="btn-num" onclick="add('0')">0</button>
+        <button class="btn-num" onclick="add('.')">.</button>
+        <button class="btn-sci" onclick="add('ans')">Ans</button>
+        <button class="btn-eq" onclick="calculate()">=</button>
+
+        <button class="btn-sci" onclick="add('pi')">π</button>
+        <button class="btn-sci" onclick="add('e')">e</button>
+        <button class="btn-sci" onclick="add('/100')">%</button>
+        <button class="btn-sci" onclick="add('*10^')">x10ˣ</button>
+        <button class="btn-sci" onclick="alert('Factorial coming soon')">x!</button>
+    </div>
+</div>
+
+<script>
+    let isOn = false;
+    let ans = 0;
+    const app = document.getElementById('calcApp');
+    const status = document.getElementById('status');
+    const display = document.getElementById('display');
+    const result = document.getElementById('result');
+
+    function powerOn() {
+        if (!isOn) {
+            isOn = true;
+            app.classList.remove('is-off');
+            status.innerText = "";
+            display.innerText = "WELCOME TO PHILLIMON EKHA";
+            result.innerText = "";
+            setTimeout(() => {
+                if(isOn) {
+                    display.innerText = "";
+                    result.innerText = "0";
+                    status.innerText = "D";
+                }
+            }, 2000);
+        } else {
+            ac();
+        }
+    }
+
+    function powerOff() {
+        if (!isOn) return;
+        status.innerText = "";
+        display.innerText = "NDIKUZIMA";
+        result.innerText = "";
+        setTimeout(() => {
+            isOn = false;
+            app.classList.add('is-off');
+            display.innerText = "";
+        }, 1500);
+    }
+
+    function add(val) {
+        if (!isOn) return;
+        // If "Welcome" is showing, clear it first
+        if (display.innerText === "WELCOME TO PHILLIMON EKHA") display.innerText = "";
+        display.innerText += val;
+    }
+
+    function ac() {
+        if (!isOn) return;
+        display.innerText = "";
+        result.innerText = "0";
+    }
+  
+    function del() {
+        if (!isOn) return;
+        display.innerText = display.innerText.slice(0, -1);
+    }
+
+    function calculate() {
+        if (!isOn || display.innerText === "") return;
+        try {
+            let expr = display.innerText.replace('ans', ans);
+            // Math.js handle scientific notation and functions
+            let res = math.evaluate(expr);
+            result.innerText = res;
+            ans = res;
+        } catch (e) {
+            result.innerText = "Syntax ERROR";
+        }
+    }
+    
+    function doShift() {
+        if (!isOn) return;
+        alert("SHIFT active (Press OFF for Power)");
+    }
+</script>
+</body>
+  </html>
